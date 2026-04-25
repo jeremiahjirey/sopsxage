@@ -181,8 +181,9 @@ jobs:
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.EC2_HOST }}
-          # username: ubuntu
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          username: ${{ secrets.SSH_PRIVATE_KEY }}
+          # key: ${{ secrets.SSH_KEY }}
+          port: 22
           source: "."
           target: "/var/www/app"
 
@@ -191,9 +192,9 @@ jobs:
         uses: appleboy/ssh-action@v0.1.10
         with:
           host: ${{ secrets.EC2_HOST }}
-          port: 22
-          # username: ubuntu
           username: ${{ secrets.SSH_PRIVATE_KEY }}
+          # key: ${{ secrets.SSH_KEY }}
+          port: 22
           script: |
             cd /var/www/app
 
