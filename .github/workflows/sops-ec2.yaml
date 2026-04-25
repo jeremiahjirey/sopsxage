@@ -194,7 +194,7 @@ jobs:
           username: ubuntu
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            cd /var/www/app
+            cd /var/www/
 
             echo "🔹 Install dependencies"
             npm install
