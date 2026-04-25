@@ -159,7 +159,7 @@ name: Deploy to VPS (Nginx + SOPS)
 
 on:
   push:
-    branches: ["dev"]
+    branches: ["main"]
 
 jobs:
   deploy:
