@@ -184,7 +184,7 @@ jobs:
           username: ubuntu
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           source: "."
-          target: "/var/www/app"
+          target: "/var/www/"
 
       # Execute deployment script
       - name: Deploy via SSH
