@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Mobil</title>
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+    <header>
+        <h1>Edit Mobil</h1>
+        <a href="/" class="btn btn-edit">Kembali</a>
+    </header>
+    <form action="/edit-car/<%= car.id %>" method="POST" enctype="multipart/form-data">
+        <label for="name">Nama Mobil:</label>
+        <input type="text" id="name" name="name" value="<%= car.name %>" required>
+        
+        <label for="price">Harga Sewa:</label>
+        <input type="number" id="price" name="price" value="<%= car.price %>" required>
+        
+        <label for="image">Gambar (Opsional):</label>
+        <input type="file" id="image" name="image">
+        
+        <button type="submit" class="btn btn-edit">Simpan</button>
+    </form>
+</body>
+</html>

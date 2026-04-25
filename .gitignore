@@ -1,0 +1,6 @@
+key.txt
+note.md
+.env
+secrets.yaml
+node_modules/
+sopslab.pem

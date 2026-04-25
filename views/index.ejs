@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rental Mobil</title>
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+    <h1>RENTAL MOBIL</h1>
+        <div class="center">
+            <a href="/add-car" class="btn btn-add">Tambah Mobil</a>
+        </div>
+    <table border="1">
+        <tr>
+            <th>ID</th>
+            <th>Nama Mobil</th>
+            <th>Harga Sewa</th>
+            <th>Gambar</th>
+            <th>Aksi</th>	
+	</tr>
+        <% cars.forEach(car => { %>
+        <tr>
+            <td><%= car.id %></td>
+            <td><%= car.name %></td>
+            <td>Rp <%= car.price %></td>
+            <td><img src="<%= car.image %>" alt="<%= car.name %>"></td>
+            <td>
+                <a href="/edit-car/<%= car.id %>" class="btn btn-edit">Edit</a>
+                <a href="/delete-car/<%= car.id %>" class="btn btn-delete" onclick="return confirm('Apakah Anda yakin ingin menghapus mobil ini?')">Hapus</a>
+            </td>        
+	</tr>
+        <% }); %>
+    </table>
+    
+    <div class="center">
+    <a href="/backup" class="btn btn-backup">Backup Database</a>
+    </div>
+
+    <footer>
+        <p>Server berjalan di IP address : <%= serverIP %></p>
+    </footer>
+
+</body>
+</html>

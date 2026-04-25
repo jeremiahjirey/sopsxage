@@ -1,0 +1,221 @@
+# name: Deploy Frontend with SOPS
+
+# on:
+#   push:
+#     branches: ["dev"]
+
+# jobs:
+#   build-and-deploy:
+#     runs-on: ubuntu-latest
+
+#     steps:
+#       # 🔹 1. Checkout
+#       - name: Checkout repository
+#         uses: actions/checkout@v4
+
+#       # 🔹 2. Setup Node + Cache
+#       - name: Setup Node
+#         uses: actions/setup-node@v4
+#         with:
+#           node-version: 18
+#           cache: "npm"
+
+#       # 🔹 3. Install dependencies
+#       - name: Install dependencies
+#         run: npm ci
+
+#       # 🔹 4. Install SOPS
+#       - name: Install SOPS
+#         run: |
+#           SOPS_VERSION=3.12.2
+#           wget https://github.com/getsops/sops/releases/download/v${SOPS_VERSION}/sops-v${SOPS_VERSION}.linux.amd64
+#           mv sops-v${SOPS_VERSION}.linux.amd64 sops
+#           chmod +x sops
+
+#       # 🔹 5. Setup AGE key
+#       - name: Setup SOPS key
+#         run: |
+#           echo "${{ secrets.SOPS_AGE_KEY }}" > key.txt
+
+#       # 🔹 6. Decrypt secrets → .env
+#       - name: Decrypt env
+#         run: |
+#           export SOPS_AGE_KEY_FILE=key.txt
+#           ./sops -d secrets.enc.yaml | sed 's/: /=/' > .env
+
+#       # 🔹 7. Validate env (biar gak silent error)
+#       - name: Validate env
+#         run: |
+#           cat .env
+#           grep VITE_API_BASE_URL .env
+
+#       # 🔹 8. Build project
+#       - name: Build project
+#         run: npm run build
+
+#       # # 🔹 9. Deploy ke VPS
+#       # - name: Deploy to VPS
+#       #   uses: appleboy/scp-action@v0.1.7
+#       #   with:
+#       #     host: ${{ secrets.EC2_HOST}}
+#       #     username: ${{ secrets.EC2_SSH_KEY }}
+#       #     port: 22
+#       #     source: "dist/*"
+#       #     target: "/project/"
+#       #     strip_components: 1
+
+#       - name: Start Application
+#         uses: appleboy/ssh-action@v0.1.10
+#         with:
+#           host: ${{ secrets.EC2_HOST }}
+#           username: ${{ secrets.EC2_SSH_KEY }}
+#           # key: ${{ secrets.SSH_KEY }}
+#           port: 22
+#           script: |
+#             #!/bin/bash
+#             mv rentalmobil /var/www
+#             npm init -y
+#             npm install express mysql mysql2 mysqldump dotenv multer ejs body-parser  @aws-sdk/client-s3
+#             npm install -g pm2
+#             echo "Setup selesai!"
+
+# name: Deploy Frontend with SOPS
+
+# on:
+#   push:
+#     branches: ["dev"]
+
+# jobs:
+#   deploy:
+#     runs-on: ubuntu-latest
+
+#     steps:
+#       # 1. Checkout
+#       - uses: actions/checkout@v4
+
+#       # 2. Setup Node
+#       - uses: actions/setup-node@v4
+#         with:
+#           node-version: 18
+#           cache: npm
+
+#       # 3. Install deps
+#       - run: npm ci
+
+#       # 4. Install SOPS
+#       - name: Install SOPS
+#         run: |
+#           curl -LO https://github.com/getsops/sops/releases/download/v3.12.2/sops-v3.12.2.linux.amd64
+#           mv sops-v3.12.2.linux.amd64 sops
+#           chmod +x sops
+
+#       # 5. Setup AGE key
+#       - name: Setup AGE key
+#         run: |
+#           echo "${{ secrets.SOPS_AGE_KEY }}" > key.txt
+#           chmod 600 key.txt
+
+#       # 6. Decrypt env
+#       - name: Decrypt secrets
+#         run: |
+#           export SOPS_AGE_KEY_FILE=key.txt
+#           ./sops -d secrets.enc.yaml > .env
+
+#       # 7. Validate (SAFE)
+#       - name: Validate env
+#         run: |
+#           grep VITE_API_BASE_URL .env
+
+#       # 8. Build
+#       - run: npm run build
+
+#       # 9. Upload ke VPS
+#       - name: Copy files to VPS
+#         uses: appleboy/scp-action@v0.1.7
+#         with:
+#           host: ${{ secrets.EC2_HOST }}
+#           username: ubuntu
+#           key: ${{ secrets.SSH_PRIVATE_KEY }}
+#           source: "dist/*"
+#           target: "/var/www/app"
+#           strip_components: 1
+
+#       # 10. Restart app via SSH
+#       - name: Restart App
+#         uses: appleboy/ssh-action@v0.1.10
+#         with:
+#           host: ${{ secrets.EC2_HOST }}
+#           username: ubuntu
+#           key: ${{ secrets.SSH_PRIVATE_KEY }}
+#           script: |
+#             pm2 restart app || pm2 start server.js --name app
+
+#       # 11. Cleanup
+#       - name: Cleanup secrets
+#         run: |
+#           rm -f key.txt .env
+
+name: Deploy to VPS (Nginx + SOPS)
+
+on:
+  push:
+    branches: ["dev"]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - run: npm ci
+
+      - run: npm run build
+
+      # Upload project ke VPS
+      - name: Upload files
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: "."
+          target: "/var/www/app"
+
+      # Execute deployment script
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          # username: ubuntu
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd /var/www/app
+
+            echo "🔹 Install dependencies"
+            npm install
+
+            echo "🔹 Setup SOPS"
+            if ! command -v sops &> /dev/null; then
+              curl -LO https://github.com/getsops/sops/releases/download/v3.12.2/sops-v3.12.2.linux.amd64
+              mv sops-v3.12.2.linux.amd64 sops
+              chmod +x sops
+            fi
+
+            echo "🔹 Setup AGE key"
+            echo "${{ secrets.SOPS_AGE_KEY }}" > key.txt
+            chmod 600 key.txt
+
+            echo "🔹 Decrypt env"
+            export SOPS_AGE_KEY_FILE=key.txt
+            ./sops -d secrets.enc.yaml > .env
+
+            echo "🔹 Restart app"
+            pm2 restart app || pm2 start app.js --name app
+
+            echo "🔹 Cleanup"
+            rm -f key.txt

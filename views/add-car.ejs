@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tambah Mobil</title>
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+    <header>
+        <h1>Tambah Mobil Baru</h1>
+        <a href="/" class="btn btn-edit">Kembali</a>
+    </header>
+    <form action="/add-car" method="POST" enctype="multipart/form-data">
+        <label for="name">Nama Mobil:</label>
+        <input type="text" id="name" name="name" required>
+        
+        <label for="price">Harga Sewa:</label>
+        <input type="number" id="price" name="price" required>
+        
+        <label for="image">Gambar:</label>
+        <input type="file" id="image" name="image" required>
+        
+        <button type="submit" class="btn btn-add">Tambah</button>
+    </form>
+</body>
+</html>
