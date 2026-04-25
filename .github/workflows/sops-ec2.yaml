@@ -184,7 +184,8 @@ jobs:
           username: ubuntu
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           source: "."
-          target: "/var/www/sopsxage"
+          target: "/tmp/sopsxage" # 🔹 Use /tmp first (universally writable)
+          strip_components: 0
 
       # Execute deployment script
       - name: Deploy via SSH
@@ -194,7 +195,10 @@ jobs:
           username: ubuntu
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            cd /var/www/sopsxage
+            sudo mkdir -p /var/www/sopsxage
+            sudo mv /tmp/sopsxage/* /var/www/sopsxage/
+            sudo chown -R ubuntu:ubuntu /var/www/sopsxage
+
 
             echo "🔹 Install dependencies"
             npm install
