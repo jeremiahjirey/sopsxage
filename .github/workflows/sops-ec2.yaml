@@ -195,31 +195,37 @@ jobs:
           username: ubuntu
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
+            script: |
+            set -e
+
+            echo "🔹 Prepare directory"
             sudo mkdir -p /var/www/sopsxage
             sudo mv /tmp/sopsxage/* /var/www/sopsxage/
             sudo chown -R ubuntu:ubuntu /var/www/sopsxage
 
+            cd /var/www/sopsxage
 
             echo "🔹 Install dependencies"
             npm install
 
-            echo "🔹 Setup SOPS"
+            echo "🔹 Install SOPS (if not exists)"
             if ! command -v sops &> /dev/null; then
-              curl -LO https://github.com/getsops/sops/releases/download/v3.12.2/sops-v3.12.2.linux.amd64
-              mv sops-v3.12.2.linux.amd64 sops
-              chmod +x sops
+            curl -LO https://github.com/getsops/sops/releases/download/v3.12.2/sops-v3.12.2.linux.amd64
+            sudo mv sops-v3.12.2.linux.amd64 /usr/local/bin/sops
+            sudo chmod +x /usr/local/bin/sops
             fi
 
             echo "🔹 Setup AGE key"
             echo "${{ secrets.SOPS_AGE_KEY }}" > key.txt
             chmod 600 key.txt
 
-            echo "🔹 Decrypt env"
+            echo "🔹 Decrypt secrets"
             export SOPS_AGE_KEY_FILE=key.txt
-            ./sops -d secrets.enc.yaml > .env
+            sops -d secrets.enc.yaml > .env
 
-            echo "🔹 Restart app"
-            pm2 restart app || pm2 start app.js --name app
+            echo "🔹 Start / Restart app"
+            pm2 delete app || true
+            pm2 start app.js --name app
 
             echo "🔹 Cleanup"
             rm -f key.txt
